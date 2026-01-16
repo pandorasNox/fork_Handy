@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       platform:
-        description: "Platforms to build for (windows, macos, linux)"
+        description: "Platforms to build (windows, macos, linux)"
         required: true
         default: "windows,macos,linux"
         type: string
@@ -24,9 +24,11 @@ jobs:
           - os: windows-latest
             platform: windows
 
-    if: contains(inputs.platform, matrix.platform)
-
     steps:
+      - name: Skip if platform not selected
+        if: ${{ !contains(inputs.platform, matrix.platform) }}
+        run: echo "Skipping ${{ matrix.platform }} build" && exit 0
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -38,7 +40,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install dependencies (Linux)
+      - name: Install Linux dependencies
         if: matrix.platform == 'linux'
         run: |
           sudo apt-get update
